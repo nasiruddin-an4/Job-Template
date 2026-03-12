@@ -1,64 +1,215 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState, useEffect, useRef, useCallback } from "react";
+import axios from "axios";
+import { toPng } from "html-to-image";
+import { Layout, RefreshCw, Check, ChevronRight } from "lucide-react";
+import { AnimatePresence } from "framer-motion";
+import { parseJobDescription } from "./utils";
+
+import StepChooseTemplate from "./components/StepChooseTemplate";
+import StepSelectPosition from "./components/StepSelectPosition";
+import StepCustomize from "./components/StepCustomize";
+
+const STEPS = [
+  { id: 1, label: "Choose Template" },
+  { id: 2, label: "Select Position" },
+  { id: 3, label: "Customize & Download" },
+];
+
+export default function JobPosterGenerator() {
+  const [step, setStep] = useState(1);
+  const [jobs, setJobs] = useState([]);
+  const [templates, setTemplates] = useState([]);
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedTemplate, setSelectedTemplate] = useState("");
+  const [customDetails, setCustomDetails] = useState({
+    salary: "",
+    location: "",
+    jobType: "",
+    shift: "",
+    deadline: "",
+    applyBy: "",
+    titleColor: "black",
+  });
+  const [isGenerating, setIsGenerating] = useState(false);
+  const previewRef = useRef(null);
+
+  /* ── Fetch Data ── */
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [jobsRes, templatesRes] = await Promise.all([
+        axios.get("/api/jobs"),
+        axios.get("/api/templates"),
+      ]);
+      setJobs(jobsRes.data.jobs || []);
+      setTemplates(templatesRes.data.templates || []);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  /* ── Select a Job ── */
+  const selectJob = (job) => {
+    setSelectedJob(job);
+    const parsed = parseJobDescription(job.description);
+    setCustomDetails((prev) => ({
+      salary: parsed.salary || "Negotiable",
+      location: parsed.location || "On Site",
+      jobType: parsed.jobType || "Full-time",
+      shift: parsed.shift || "Day Shift",
+      deadline: parsed.deadline || "Not Specified",
+      applyBy: "10 FEB 2026",
+      titleColor: prev.titleColor || "black",
+    }));
+  };
+
+  /* ── Download Poster ── */
+  const handleDownload = async () => {
+    if (!previewRef.current) return;
+    setIsGenerating(true);
+    try {
+      const dataUrl = await toPng(previewRef.current, {
+        quality: 0.95,
+        pixelRatio: 2,
+      });
+      const link = document.createElement("a");
+      link.download = `job-poster-${selectedJob?.title
+        .replace(/\s+/g, "-")
+        .toLowerCase()}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error("Could not generate image", err);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  /* ── Can Proceed? ── */
+  const canProceed = () => {
+    if (step === 1) return !!selectedTemplate;
+    if (step === 2) return !!selectedJob;
+    return true;
+  };
+
+  /* ─────────────────── LOADING ─────────────────── */
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="flex flex-col items-center gap-4">
+          <RefreshCw className="h-8 w-8 animate-spin text-orange-500" />
+          <p className="text-zinc-400 font-medium">Loading data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  /* ─────────────────── MAIN ─────────────────── */
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-gray-50 text-slate-900 flex flex-col">
+      {/* ── Top Bar ── */}
+      <header className="bg-white backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Layout className="h-5 w-5 text-orange-500" />
+            <h1 className="text-lg font-bold tracking-tight">
+              Job Poster Generator
+            </h1>
+          </div>
+
+          {/* Step Indicator */}
+          <div className="flex items-center gap-2">
+            {STEPS.map((s, idx) => (
+              <div key={s.id} className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    if (s.id < step) setStep(s.id);
+                  }}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${
+                    step === s.id
+                      ? "bg-orange-600 text-white"
+                      : step > s.id
+                        ? "bg-orange-100 text-orange-600 cursor-pointer hover:bg-orange-200"
+                        : "bg-gray-100 text-zinc-400"
+                  }`}
+                >
+                  <span
+                    className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                      step > s.id
+                        ? "bg-orange-500 text-white"
+                        : step === s.id
+                          ? "bg-white/20"
+                          : "bg-gray-200"
+                    }`}
+                  >
+                    {step > s.id ? (
+                      <Check className="w-3.5 h-3.5" />
+                    ) : (
+                      s.id
+                    )}
+                  </span>
+                  <span className="hidden sm:inline">{s.label}</span>
+                </button>
+                {idx < STEPS.length - 1 && (
+                  <ChevronRight
+                    className={`w-4 h-4 ${
+                      step > s.id ? "text-orange-500" : "text-zinc-300"
+                    }`}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+      </header>
+
+      {/* ── Content Area ── */}
+      <main className="flex-1 flex flex-col">
+        <AnimatePresence mode="wait">
+          {step === 1 && (
+            <StepChooseTemplate
+              templates={templates}
+              selectedTemplate={selectedTemplate}
+              setSelectedTemplate={setSelectedTemplate}
+              onNext={() => canProceed() && setStep(2)}
+              canProceed={canProceed()}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+          )}
+
+          {step === 2 && (
+            <StepSelectPosition
+              jobs={jobs}
+              selectedJob={selectedJob}
+              selectJob={selectJob}
+              onNext={() => canProceed() && setStep(3)}
+              onBack={() => setStep(1)}
+              canProceed={canProceed()}
+            />
+          )}
+
+          {step === 3 && (
+            <StepCustomize
+              selectedTemplate={selectedTemplate}
+              selectedJob={selectedJob}
+              setSelectedJob={setSelectedJob}
+              customDetails={customDetails}
+              setCustomDetails={setCustomDetails}
+              isGenerating={isGenerating}
+              handleDownload={handleDownload}
+              previewRef={previewRef}
+              goToStep={setStep}
+            />
+          )}
+        </AnimatePresence>
       </main>
     </div>
   );
