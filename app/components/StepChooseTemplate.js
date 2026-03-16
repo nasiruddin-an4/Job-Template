@@ -20,11 +20,9 @@ export default function StepChooseTemplate({
       transition={{ duration: 0.35, ease: "easeInOut" }}
       className="flex-1 flex flex-col"
     >
-      <div className="max-w-6xl w-full mx-auto px-6 py-6 flex-1">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold tracking-tight mb-3">
-            Choose a Template
-          </h2>
+      <div className="max-w-6xl w-full mx-auto px-6 pt-6 flex-1">
+        <div className="text-center mb-6">
+          <h2 className="text-4xl font-semibold mb-1">Choose a Template</h2>
           <p className="text-zinc-400 text-lg">
             Select a background design for your job poster
           </p>

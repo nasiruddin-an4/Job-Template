@@ -9,6 +9,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-brandOrange: #f79549;
   --font-sans: var(--font-outfit);
 }
 

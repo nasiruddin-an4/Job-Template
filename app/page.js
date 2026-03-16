@@ -32,6 +32,7 @@ export default function JobPosterGenerator() {
     deadline: "",
     applyBy: "",
     titleColor: "black",
+    bannerSize: { id: "square", w: 1080, h: 1080, label: "Square" },
   });
   const [isGenerating, setIsGenerating] = useState(false);
   const previewRef = useRef(null);
@@ -69,6 +70,7 @@ export default function JobPosterGenerator() {
       deadline: parsed.deadline || "Not Specified",
       applyBy: "10 FEB 2026",
       titleColor: prev.titleColor || "black",
+      bannerSize: prev.bannerSize || { id: "square", w: 1080, h: 1080, label: "Square" },
     }));
   };
 
@@ -77,9 +79,12 @@ export default function JobPosterGenerator() {
     if (!previewRef.current) return;
     setIsGenerating(true);
     try {
+      const bSize = customDetails.bannerSize || { w: 1080, h: 1080 };
       const dataUrl = await toPng(previewRef.current, {
         quality: 0.95,
-        pixelRatio: 2,
+        pixelRatio: bSize.w / 800,
+        canvasWidth: bSize.w,
+        canvasHeight: bSize.h,
       });
       const link = document.createElement("a");
       link.download = `job-poster-${selectedJob?.title
@@ -89,6 +94,46 @@ export default function JobPosterGenerator() {
       link.click();
     } catch (err) {
       console.error("Could not generate image", err);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  /* ── Download All Sizes ── */
+  const handleDownloadAll = async () => {
+    if (!previewRef.current) return;
+    setIsGenerating(true);
+    const sizes = [
+      { id: "square", w: 1080, h: 1080, label: "Square" },
+      { id: "vertical", w: 1440, h: 2560, label: "Vertical" },
+      { id: "portrait", w: 1440, h: 1800, label: "Portrait" },
+      { id: "landscape", w: 2400, h: 1260, label: "Landscape" },
+    ];
+
+    try {
+      for (const size of sizes) {
+        // Temporarily update state to trigger re-render for this size
+        setCustomDetails((prev) => ({ ...prev, bannerSize: size }));
+        
+        // Wait for a small frame to ensure React re-renders the canvas height
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        const dataUrl = await toPng(previewRef.current, {
+          quality: 0.95,
+          pixelRatio: size.w / 800,
+          canvasWidth: size.w,
+          canvasHeight: size.h,
+        });
+
+        const link = document.createElement("a");
+        link.download = `job-poster-${size.id}-${selectedJob?.title
+          .replace(/\s+/g, "-")
+          .toLowerCase()}.png`;
+        link.href = dataUrl;
+        link.click();
+      }
+    } catch (err) {
+      console.error("Could not generate all images", err);
     } finally {
       setIsGenerating(false);
     }
@@ -118,12 +163,10 @@ export default function JobPosterGenerator() {
     <div className="min-h-screen bg-gray-50 text-slate-900 flex flex-col">
       {/* ── Top Bar ── */}
       <header className="bg-white backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Layout className="h-5 w-5 text-orange-500" />
-            <h1 className="text-lg font-bold tracking-tight">
-              Job Poster Generator
-            </h1>
+            <Layout className="h-5 w-5 text-brandOrange" />
+            <h1 className="text-lg font-bold">Betopia Job Poster Generator</h1>
           </div>
 
           {/* Step Indicator */}
@@ -151,11 +194,7 @@ export default function JobPosterGenerator() {
                           : "bg-gray-200"
                     }`}
                   >
-                    {step > s.id ? (
-                      <Check className="w-3.5 h-3.5" />
-                    ) : (
-                      s.id
-                    )}
+                    {step > s.id ? <Check className="w-3.5 h-3.5" /> : s.id}
                   </span>
                   <span className="hidden sm:inline">{s.label}</span>
                 </button>
@@ -205,6 +244,7 @@ export default function JobPosterGenerator() {
               setCustomDetails={setCustomDetails}
               isGenerating={isGenerating}
               handleDownload={handleDownload}
+              handleDownloadAll={handleDownloadAll}
               previewRef={previewRef}
               goToStep={setStep}
             />
