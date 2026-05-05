@@ -15,12 +15,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 
-const BANNER_SIZES = [
-  { id: "square", w: 1080, h: 1080, label: "Square" },
-  { id: "portrait", w: 1440, h: 1800, label: "Portrait" },
-  { id: "landscape", w: 2400, h: 1260, label: "Horizontal" },
-  { id: "vertical", w: 1440, h: 2560, label: "Vertical" },
-];
+const BANNER_SIZES = [{ id: "square", w: 1080, h: 1080, label: "Square" }];
 
 /* ─────────────────────────────────────────────────────────────────────────────
    SQAURE POSTER (1080 x 1080)
@@ -48,20 +43,20 @@ function SquarePoster({ selectedTemplate, customDetails, selectedJob }) {
             </h1>
           </div>
           <p className="text-gray-700 font-medium text-[30px]">Position:</p>
-          <div className="flex items-center gap-3">
+          <div className="mt-1">
             <h3
-              className={`font-bold text-[42px] ${customDetails.titleColor === "white" ? "text-white" : "text-black"}`}
+              className={`font-bold text-[36px] leading-[1.3] max-w-[600px] ${customDetails.titleColor === "white" ? "text-white" : "text-black"}`}
             >
               {selectedJob?.title}
             </h3>
           </div>
-          <div className="flex flex-wrap gap-[16px] mt-[10px]">
+          <div className="flex flex-wrap gap-[16px] mt-[16px]">
             {[customDetails.jobType, customDetails.shift]
               .filter(Boolean)
               .map((badge, idx) => (
                 <span
                   key={idx}
-                  className="bg-white/95 border border-gray-100/50 rounded-full text-gray-800 tracking-wide shadow-sm px-4 py-1 text-lg"
+                  className="bg-white/95 border border-gray-100/50 rounded-full text-gray-800 tracking-wide shadow-sm px-4 py-1 text-2xl"
                 >
                   {badge
                     .replace(/&amp;/g, "&")
@@ -71,7 +66,7 @@ function SquarePoster({ selectedTemplate, customDetails, selectedJob }) {
               ))}
           </div>
         </div>
-        <div className="flex flex-col w-[55%] gap-4 px-16 mb-32">
+        <div className="flex flex-col w-[55%] gap-4 px-16 mb-24">
           <div className="bg-linear-to-r from-white/95 via-white/85 to-transparent pl-4 py-2">
             <p className="text-gray-700 font-semibold text-[22px]">
               Salary Range:
@@ -98,274 +93,7 @@ function SquarePoster({ selectedTemplate, customDetails, selectedJob }) {
   );
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   HORIZONTAL POSTER (2400 x 1260)
-   Used for Landscape placements (1.91:1).
-   ───────────────────────────────────────────────────────────────────────────── */
-function HorizontalPoster({ selectedTemplate, customDetails, selectedJob }) {
-  return (
-    <div className="w-full h-full relative font-sans overflow-hidden bg-white">
-      {selectedTemplate && (
-        <Image
-          src={`/template/${selectedTemplate}`}
-          fill
-          className="absolute inset-0 object-cover"
-          alt="Horizontal Background"
-          priority
-          unoptimized
-        />
-      )}
-      <div className="absolute inset-0 flex flex-col justify-between z-10 w-full py-[220px]">
-        <div className="px-[266px]">
-          <div className="leading-none mb-[177px] mt-[222px]">
-            <h2 className="font-medium text-black text-[100px]">We are</h2>
-            <h1 className="font-bold tracking-tight text-black text-[280px] leading-[0.85]">
-              Hiring
-            </h1>
-          </div>
-          <p className="text-gray-700 font-medium text-[66px] mb-[33px]">
-            Position:
-          </p>
-          <div className="flex items-center gap-3 mb-[88px]">
-            <h3
-              className={`font-bold text-[93px] ${customDetails.titleColor === "white" ? "text-white" : "text-black"}`}
-            >
-              {selectedJob?.title}
-            </h3>
-          </div>
-          <div className="flex flex-wrap gap-[35px] mt-[22px]">
-            {[customDetails.jobType, customDetails.shift]
-              .filter(Boolean)
-              .map((badge, idx) => (
-                <span
-                  key={idx}
-                  className="bg-white/95 border border-gray-100/50 rounded-full font-bold text-gray-800 tracking-wide shadow-sm px-[53px] py-[22px] text-[40px]"
-                >
-                  {badge
-                    .replace(/&amp;/g, "&")
-                    .replace(/\s*\(.*?\)/g, "")
-                    .trim()}
-                </span>
-              ))}
-          </div>
-        </div>
-        <div className="flex flex-col w-[60%] gap-[66px] px-[266px] mb-[222px]">
-          <div className="bg-linear-to-r from-white/95 via-white/85 to-transparent shadow-sm pl-[44px] py-[55px]">
-            <p className="text-gray-700 font-semibold text-[48px] mb-[11px]">
-              Salary Range:
-            </p>
-            <div className="flex items-baseline gap-2">
-              <span className="text-brandOrange font-bold text-[88px]">
-                {customDetails.salary
-                  ? customDetails.salary
-                      .replace(/\s*\(?negotiable\)?/gi, "")
-                      .trim() || "Negotiable"
-                  : "Negotiable"}
-              </span>
-            </div>
-          </div>
-          <div className="bg-linear-to-r from-white/95 via-white/85 to-transparent shadow-sm pl-[44px] py-[55px]">
-            <p className="text-gray-700 font-semibold text-[48px] mb-[11px]">
-              Apply By:
-            </p>
-            <div className="text-brandOrange font-bold text-[88px]">
-              {customDetails.applyBy}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────────────────────────────────────────
-   PORTRAIT POSTER (1440 x 1800)
-   Used for Facebook/Instagram Portrait feed (4:5).
-   ───────────────────────────────────────────────────────────────────────────── */
-function PortraitPoster({ selectedTemplate, customDetails, selectedJob }) {
-  return (
-    <div className="w-full h-full relative font-sans overflow-hidden bg-white">
-      {selectedTemplate && (
-        <Image
-          src={`/template/${selectedTemplate}`}
-          fill
-          className="absolute inset-0 object-cover"
-          alt="Portrait Background"
-          priority
-          unoptimized
-        />
-      )}
-      <div className="absolute inset-0 flex flex-col justify-between z-10 w-full py-[133px]">
-        <div className="px-[160px]">
-          <div className="leading-none mb-[106px] mt-[133px]">
-            <h2 className="font-medium text-black text-[60px]">We are</h2>
-            <h1 className="font-bold tracking-tight text-black text-[173px] leading-[0.85]">
-              Hiring
-            </h1>
-          </div>
-          <p className="text-gray-700 font-medium text-[40px] mb-[20px]">
-            Position:
-          </p>
-          <div className="flex items-center gap-3 mb-[53px]">
-            <h3
-              className={`font-bold text-[56px] ${customDetails.titleColor === "white" ? "text-white" : "text-black"}`}
-            >
-              {selectedJob?.title}
-            </h3>
-          </div>
-          <div className="flex flex-wrap gap-[21px] mt-[13px]">
-            {[customDetails.jobType, customDetails.shift]
-              .filter(Boolean)
-              .map((badge, idx) => (
-                <span
-                  key={idx}
-                  className="bg-white/95 border border-gray-100/50 rounded-full font-bold text-gray-800 tracking-wide shadow-sm px-[32px] py-[13px] text-[24px]"
-                >
-                  {badge
-                    .replace(/&amp;/g, "&")
-                    .replace(/\s*\(.*?\)/g, "")
-                    .trim()}
-                </span>
-              ))}
-          </div>
-        </div>
-        <div className="flex flex-col w-[80%] gap-[40px] px-[160px] mb-[133px]">
-          <div className="bg-linear-to-r from-white/95 via-white/85 to-transparent shadow-sm pl-[26px] py-[33px]">
-            <p className="text-gray-700 font-semibold text-[29px] mb-[6px]">
-              Salary Range:
-            </p>
-            <div className="flex items-baseline gap-2">
-              <span className="text-brandOrange font-bold text-[53px]">
-                {customDetails.salary
-                  ? customDetails.salary
-                      .replace(/\s*\(?negotiable\)?/gi, "")
-                      .trim() || "Negotiable"
-                  : "Negotiable"}
-              </span>
-            </div>
-          </div>
-          <div className="bg-linear-to-r from-white/95 via-white/85 to-transparent shadow-sm pl-[26px] py-[33px]">
-            <p className="text-gray-700 font-semibold text-[29px] mb-[6px]">
-              Apply By:
-            </p>
-            <div className="text-brandOrange font-bold text-[53px]">
-              {customDetails.applyBy}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────────────────────────────────────────
-   VERTICAL POSTER (1440 x 2560)
-   Used for Stories and Reels (9:16).
-   ───────────────────────────────────────────────────────────────────────────── */
-function VerticalPoster({ selectedTemplate, customDetails, selectedJob }) {
-  return (
-    <div className="w-full h-full relative font-sans overflow-hidden bg-white">
-      {selectedTemplate && (
-        <Image
-          src={`/template/${selectedTemplate}`}
-          fill
-          className="absolute inset-0 object-cover"
-          alt="Vertical Background"
-          priority
-          unoptimized
-        />
-      )}
-      <div className="absolute inset-0 flex flex-col justify-between z-10 w-full py-[133px]">
-        <div className="px-[160px]">
-          <div className="leading-none mb-[106px] mt-[133px]">
-            <h2 className="font-medium text-black text-[60px]">We are</h2>
-            <h1 className="font-bold tracking-tight text-black text-[173px] leading-[0.85]">
-              Hiring
-            </h1>
-          </div>
-          <p className="text-gray-700 font-medium text-[40px] mb-[20px]">
-            Position:
-          </p>
-          <div className="flex items-center gap-3 mb-[53px]">
-            <h3
-              className={`font-bold text-[56px] ${customDetails.titleColor === "white" ? "text-white" : "text-black"}`}
-            >
-              {selectedJob?.title}
-            </h3>
-          </div>
-          <div className="flex flex-wrap gap-[21px] mt-[13px]">
-            {[customDetails.jobType, customDetails.shift]
-              .filter(Boolean)
-              .map((badge, idx) => (
-                <span
-                  key={idx}
-                  className="bg-white/95 border border-gray-100/50 rounded-full font-bold text-gray-800 tracking-wide shadow-sm px-[32px] py-[13px] text-[24px]"
-                >
-                  {badge
-                    .replace(/&amp;/g, "&")
-                    .replace(/\s*\(.*?\)/g, "")
-                    .trim()}
-                </span>
-              ))}
-          </div>
-        </div>
-        <div className="flex flex-col w-[80%] gap-[40px] px-[160px] mb-[133px]">
-          <div className="bg-linear-to-r from-white/95 via-white/85 to-transparent shadow-sm pl-[26px] py-[33px]">
-            <p className="text-gray-700 font-semibold text-[29px] mb-[6px]">
-              Salary Range:
-            </p>
-            <div className="flex items-baseline gap-2">
-              <span className="text-brandOrange font-bold text-[53px]">
-                {customDetails.salary
-                  ? customDetails.salary
-                      .replace(/\s*\(?negotiable\)?/gi, "")
-                      .trim() || "Negotiable"
-                  : "Negotiable"}
-              </span>
-            </div>
-          </div>
-          <div className="bg-linear-to-r from-white/95 via-white/85 to-transparent shadow-sm pl-[26px] py-[33px]">
-            <p className="text-gray-700 font-semibold text-[29px] mb-[6px]">
-              Apply By:
-            </p>
-            <div className="text-brandOrange font-bold text-[53px]">
-              {customDetails.applyBy}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function PosterContent({ selectedTemplate, customDetails, selectedJob, size }) {
-  if (size?.id === "vertical") {
-    return (
-      <VerticalPoster
-        selectedTemplate={selectedTemplate}
-        customDetails={customDetails}
-        selectedJob={selectedJob}
-      />
-    );
-  }
-  if (size?.id === "landscape") {
-    return (
-      <HorizontalPoster
-        selectedTemplate={selectedTemplate}
-        customDetails={customDetails}
-        selectedJob={selectedJob}
-      />
-    );
-  }
-  if (size?.id === "portrait") {
-    return (
-      <PortraitPoster
-        selectedTemplate={selectedTemplate}
-        customDetails={customDetails}
-        selectedJob={selectedJob}
-      />
-    );
-  }
+function PosterContent({ selectedTemplate, customDetails, selectedJob }) {
   return (
     <SquarePoster
       selectedTemplate={selectedTemplate}
@@ -381,7 +109,7 @@ function SimpleFormatCard({
   customDetails,
   selectedJob,
 }) {
-  const displayWidth = 340;
+  const displayWidth = 650;
   const scale = displayWidth / size.w;
   const previewHeight = size.h * scale;
 
@@ -573,7 +301,7 @@ export default function StepCustomize({
       </aside>
 
       <div className="flex-1 flex flex-col bg-slate-50 relative overflow-hidden">
-        <div className="flex-1 overflow-x-auto overflow-y-hidden custom-scrollbar pt-4 px-5 flex items-start gap-4">
+        <div className="flex-1 overflow-x-auto overflow-y-hidden custom-scrollbar py-2 px-5 flex justify-center items-center gap-4">
           {BANNER_SIZES.map((size) => (
             <SimpleFormatCard
               key={size.id}
@@ -611,7 +339,7 @@ export default function StepCustomize({
             ) : (
               <Download className="w-8 h-8" />
             )}
-            {isGenerating ? "Exporting Banners..." : "Download All Formats"}
+            {isGenerating ? "Exporting Banners..." : "Download Poster"}
           </button>
         </div>
       </div>
